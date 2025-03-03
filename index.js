@@ -64,6 +64,12 @@ bot.on("contact", async (msg) => {
 
   // Save data to Google Sheets
   await addUserToSheet(name, surname, phone);
+  const youtubeLink = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+
+        bot.sendMessage(
+            chatId,
+            `Hello, ${name} ${surname}! Your phone number is ${phone}.\nHere is your YouTube link: ${youtubeLink}`
+        );
 
   bot.sendMessage(chatId, "✅ Your details have been saved! Thank you.");
   delete userSteps[chatId]; // Clear user data after saving
@@ -75,11 +81,11 @@ async function addUserToSheet(name, surname, phone) {
     const client = await auth.getClient();
     const sheets = google.sheets({ version: "v4", auth: client });
 
-    const values = [[name, surname, phone]]; // Data for each column
+    const values = [[name, surname, phone]];
 
     await sheets.spreadsheets.values.append({
-      spreadsheetId: SPREADSHEET_ID,
-      range: "Sheet1!A:C", // Target columns A to C
+      spreadsheetId: SPREADSHEET_ID, 
+      range: "Sheet1!A:C", // ✅ Use "Sheet1!A:C" to specify columns
       valueInputOption: "RAW",
       insertDataOption: "INSERT_ROWS",
       resource: { values },
