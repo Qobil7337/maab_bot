@@ -12,9 +12,9 @@ const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: true });
 
 // Google Sheets Authentication
 const auth = new google.auth.GoogleAuth({
-    keyFile: path.join(__dirname, "./sardormaab-196543b03a8a.json"), // Your JSON key file
-    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-  });
+  credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS),
+  scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+});
 
 // Step-tracking object to store user details temporarily
 const userSteps = {};
