@@ -22,7 +22,7 @@ const userSteps = {};
 // Start command
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
-  bot.sendMessage(chatId, "Welcome! Please enter your first name:");
+  bot.sendMessage(chatId, "Assalomu aleykum! Iltimos, ismingizni kiriting:");
   userSteps[chatId] = { step: "name" }; // Start data collection
 });
 
@@ -30,6 +30,9 @@ bot.onText(/\/start/, (msg) => {
 bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
   const text = msg.text;
+
+  // Ignore messages that contain a contact
+  if (msg.contact) return;  // ✅ Prevents duplicate execution
 
   // Check the user's current step
   if (!userSteps[chatId]) return;
@@ -39,17 +42,24 @@ bot.on("message", async (msg) => {
   if (userData.step === "name") {
     userData.name = text;
     userData.step = "surname";
-    bot.sendMessage(chatId, "Great! Now enter your surname:");
+    bot.sendMessage(chatId, "Ajoyib! Endi familiyangizni kiriting:");
   } else if (userData.step === "surname") {
     userData.surname = text;
     userData.step = "phone";
-    bot.sendMessage(chatId, "Finally, send your phone number (use the Telegram 'Send Contact' button).", {
+    bot.sendMessage(chatId, "Nihoyat, telefon raqamingizni (998907777777) formatida yuboring yo'ki Telegramdagi “Kontaktni yuborish” tugmasidan foydalaning).", {
       reply_markup: {
-        keyboard: [[{ text: "📞 Send My Number", request_contact: true }]],
+        keyboard: [[{ text: "📞 Raqamimni yuborish", request_contact: true }]],
         resize_keyboard: true,
         one_time_keyboard: true,
       },
     });
+  } else if (userData.step === "phone") {
+    if (isValidPhoneNumber(text)) {
+        userData.phone = text;
+        await processUserData(chatId);
+    } else {
+      bot.sendMessage(chatId, "❌ Iltimos, telefon raqamingizni to'g'ri formatda (998907777777) kiriting yoki pastdagi tugmadan foydalaning.");
+    }
   }
 });
 
@@ -68,10 +78,10 @@ bot.on("contact", async (msg) => {
 
         bot.sendMessage(
             chatId,
-            `Hello, ${name} ${surname}! Your phone number is ${phone}.\nHere is your YouTube link: ${youtubeLink}`
+            `Salom, ${name} ${surname}!.\nMana sizning YouTube havolangiz: ${youtubeLink}`
         );
 
-  bot.sendMessage(chatId, "✅ Your details have been saved! Thank you.");
+  bot.sendMessage(chatId, "✅ Sizning ma'lumotlaringiz saqlandi! Rahmat.");
   delete userSteps[chatId]; // Clear user data after saving
 });
 
@@ -99,3 +109,24 @@ async function addUserToSheet(name, surname, phone) {
 
 // Start the bot
 console.log("🤖 Telegram bot is running...");
+
+
+function isValidPhoneNumber(phone) {
+  const phoneRegex = /^\+?\d{10,15}$/;
+  return phoneRegex.test(phone);
+}
+
+async function processUserData(chatId) {
+  const { name, surname, phone } = userSteps[chatId];
+
+  await addUserToSheet(name, surname, phone);
+  const youtubeLink = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+
+  bot.sendMessage(
+    chatId,
+    `Salom, ${name} ${surname}!.\nMana sizning YouTube havolangiz: ${youtubeLink}`
+  );
+
+  bot.sendMessage(chatId, "✅ Sizning ma'lumotlaringiz saqlandi! Rahmat.");
+  delete userSteps[chatId]; // Clear user data after saving
+}
